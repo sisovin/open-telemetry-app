@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-telemetry-app
+  labels:
+    app: open-telemetry-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: open-telemetry-app
+  template:
+    metadata:
+      labels:
+        app: open-telemetry-app
+    spec:
+      containers:
+        - name: open-telemetry-app
+          image: open-telemetry-app:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: OTEL_EXPORTER_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: otel-config
+                  key: OTEL_EXPORTER_ENDPOINT
+            - name: OTEL_SERVICE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: otel-config
+                  key: OTEL_SERVICE_NAME
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: app-config
